@@ -1,66 +1,99 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import {
-  ENSRegistryWithFallback,
-  ApprovalForAll,
-  NewOwner,
-  NewResolver,
-  NewTTL,
-  Transfer
+    ENSRegistryWithFallback,
+    ApprovalForAll as ApprovalForAllEvent,
+    NewOwner as NewOwnerEvent,
+    NewResolver as NewResolverEvent,
+    NewTTL as NewTTLEvent,
+    Transfer as TransferEvent,
 } from "../generated/ENSRegistryWithFallback/ENSRegistryWithFallback"
-import { ExampleEntity } from "../generated/schema"
+import {
+    Counter,
+    Transfer,
+    NewOwner,
+    NewResolver,
+    NewTTL,
+    ApprovalForAll,
+} from "../generated/schema"
 
-export function handleApprovalForAll(event: ApprovalForAll): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+export function handleApprovalForAll(event: ApprovalForAllEvent): void {
+    let counter = getCounter("ApprovalForAll")
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (!entity) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+    let entity = new ApprovalForAll(counter.count.toString())
+    entity.index = counter.count
+    entity.hash = event.transaction.hash
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
+    entity.owner = event.params.owner
+    entity.operator = event.params.operator
+    entity.approved = event.params.approved
+    entity.save()
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.owner = event.params.owner
-  entity.operator = event.params.operator
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.isApprovedForAll(...)
-  // - contract.old(...)
-  // - contract.owner(...)
-  // - contract.recordExists(...)
-  // - contract.resolver(...)
-  // - contract.setSubnodeOwner(...)
-  // - contract.ttl(...)
+    counter.save()
 }
 
-export function handleNewOwner(event: NewOwner): void {}
+export function handleNewOwner(event: NewOwnerEvent): void {
+    let counter = getCounter("NewOwner")
 
-export function handleNewResolver(event: NewResolver): void {}
+    let entity = new NewOwner(counter.count.toString())
+    entity.index = counter.count
+    entity.hash = event.transaction.hash
 
-export function handleNewTTL(event: NewTTL): void {}
+    entity.node = event.params.node
+    entity.label = event.params.label
+    entity.owner = event.params.owner
+    entity.save()
 
-export function handleTransfer(event: Transfer): void {}
+    counter.save()
+}
+
+export function handleNewResolver(event: NewResolverEvent): void {
+    let counter = getCounter("NewResolver")
+
+    let entity = new NewResolver(counter.count.toString())
+    entity.index = counter.count
+    entity.hash = event.transaction.hash
+
+    entity.node = event.params.node
+    entity.resolver = event.params.resolver
+    entity.save()
+
+    counter.save()
+}
+
+export function handleNewTTL(event: NewTTLEvent): void {
+    let counter = getCounter("NewTTL")
+
+    let entity = new NewTTL(counter.count.toString())
+    entity.index = counter.count
+    entity.hash = event.transaction.hash
+
+    entity.node = event.params.node
+    entity.ttl = event.params.ttl
+    entity.save()
+
+    counter.save()
+}
+
+export function handleTransfer(event: TransferEvent): void {
+    let counter = getCounter("Transfer")
+
+    let entity = new Transfer(counter.count.toString())
+    entity.index = counter.count
+    entity.hash = event.transaction.hash
+
+    entity.node = event.params.node
+    entity.owner = event.params.owner
+    entity.save()
+
+    counter.save()
+}
+
+function getCounter(key: string): Counter {
+    let counter = Counter.load(key)
+    if (!counter) {
+        counter = new Counter(key)
+        counter.count = BigInt.fromI32(0)
+    }
+    counter.count = counter.count.plus(BigInt.fromI32(1))
+    return counter
+}

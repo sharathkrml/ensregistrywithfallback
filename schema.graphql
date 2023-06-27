@@ -1,6 +1,57 @@
-type ExampleEntity @entity {
-  id: ID!
-  count: BigInt!
-  owner: Bytes! # address
-  operator: Bytes! # address
+# Logged when the owner of a node assigns a new owner to a subnode.
+# event NewOwner(bytes32 indexed node, bytes32 indexed label, address owner);
+type NewOwner @entity {
+    id: ID!
+    index: BigInt!
+    hash: Bytes!
+
+    node: Bytes!
+    label: Bytes!
+    owner: Bytes!
+}
+# Logged when the owner of a node transfers ownership to a new account.
+# event Transfer(bytes32 indexed node, address owner);
+type Transfer @entity {
+    id: ID!
+    index: BigInt!
+    hash: Bytes!
+
+    node: Bytes!
+    owner: Bytes!
+}
+# Logged when the resolver for a node changes.
+# event NewResolver(bytes32 indexed node, address resolver);
+type NewResolver @entity {
+    id: ID!
+    index: BigInt!
+    hash: Bytes!
+
+    node: Bytes!
+    resolver: Bytes!
+}
+# Logged when the TTL of a node changes
+# event NewTTL(bytes32 indexed node, uint64 ttl);
+type NewTTL @entity {
+    id: ID!
+    index: BigInt!
+    hash: Bytes!
+
+    node: Bytes!
+    ttl: BigInt!
+}
+# Logged when an operator is added or removed.
+# event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+type ApprovalForAll @entity {
+    id: ID!
+    index: BigInt!
+    hash: Bytes!
+
+    owner: Bytes!
+    operator: Bytes!
+    approved: Boolean!
+}
+
+type Counter @entity {
+    id: ID!
+    count: BigInt!
 }
